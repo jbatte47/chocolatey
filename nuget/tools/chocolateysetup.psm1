@@ -5,13 +5,13 @@ $sysDrive = $env:SystemDrive
 $defaultChocolateyPathOld = "$sysDrive\NuGet"
 
 function Set-ChocolateyInstallFolder($folder){
-  if(test-path $folder){
+  #if(test-path $folder){
     write-host "Creating $chocInstallVariableName as a User Environment variable and setting it to `'$folder`'"
     [Environment]::SetEnvironmentVariable($chocInstallVariableName, $folder, [System.EnvironmentVariableTarget]::User)
-  }
-  else{
-    throw "Cannot set the chocolatey install folder. Folder not found [$folder]"
-  }
+  #}
+  #else{
+  #  throw "Cannot set the chocolatey install folder. Folder not found [$folder]"
+  #}
 }
 
 function Get-ChocolateyInstallFolder(){
@@ -174,7 +174,7 @@ Creating Chocolatey NuGet folders if they do not already exist.
   Install-ChocolateyFiles $chocolateyPath
   
   $chocolateyExePathVariable = $chocolateyExePath.ToLower().Replace($chocolateyPath.ToLower(), "%DIR%..\").Replace("\\","\")
-  Create-ChocolateyBinFiles $nugetChocolateyPath.ToLower().Replace($chocolateyPath.ToLower(), "%$($chocInstallVariableName)%\").Replace("\\","\") $chocolateyExePath
+  Create-ChocolateyBinFiles $nugetChocolateyPath.ToLower().Replace($chocolateyPath.ToLower(), "%DIR%..\").Replace("\\","\") $chocolateyExePath
   Initialize-ChocolateyPath $chocolateyExePath $chocolateyExePathVariable
   Process-ChocolateyBinFiles $chocolateyExePath $chocolateyExePathVariable
   
@@ -230,8 +230,12 @@ param(
   
   $chocInstallFolder = Join-Path $thisScriptFolder "chocolateyInstall"
   Write-Host "Copying the contents of `'$chocInstallFolder`' to `'$chocolateyPath`'."
-  Remove-Item "$chocolateyPath\chocolateyInstall\functions" -recurse -force 
-  Remove-Item "$chocolateyPath\chocolateyInstall\helpers" -recurse -force 
+  if(test-path "$chocolateyPath\chocolateyInstall\functions") {
+    Remove-Item "$chocolateyPath\chocolateyInstall\functions" -recurse -force 
+  }
+  if(test-path "$chocolateyPath\chocolateyInstall\helpers") {
+    Remove-Item "$chocolateyPath\chocolateyInstall\helpers" -recurse -force 
+  }
   Copy-Item $chocInstallFolder $chocolateyPath -recurse -force
 }
 

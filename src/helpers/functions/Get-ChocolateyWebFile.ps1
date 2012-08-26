@@ -36,10 +36,18 @@ param(
   [string] $url,
   [string] $url64bit = $url
 )
+  Write-Debug "Running 'Get-ChocolateyWebFile' for $packageName with url:`'$url`', fileFullPath:`'$fileFullPath`',and url64bit:`'$url64bit`'";
   
   $url32bit = $url;
   $processor = Get-WmiObject Win32_Processor
-  $is64bit = $processor.AddressWidth -eq 64
+  $procCount=(Get-WmiObject Win32_ComputerSystem).NumberofProcessors
+  if ($procCount -eq '1') {
+     $is64bit = $processor.AddressWidth -eq 64
+     Write-Debug "Processor width is $($processor.AddressWidth)."
+	 } else {
+	 Write-Debug "First processor width is $($processor[0].AddressWidth)."
+	 $is64bit = $processor[0].AddressWidth -eq 64
+	 }
   $systemBit = '32 bit'
   if ($is64bit) {
     $systemBit = '64 bit';
@@ -54,6 +62,7 @@ param(
   if ($url.StartsWith('http')) {
     Get-WebFile $url $fileFullPath
   } else {
+    Write-Debug "We are attempting to copy the local item `'$url`' to `'$fileFullPath`'"
     Copy-Item $url -Destination $fileFullPath -Force
   }
   
