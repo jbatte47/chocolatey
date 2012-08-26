@@ -9,12 +9,13 @@
   [switch] $overrideArgs = $false,
   [switch] $force = $false,
   [alias("pre")][switch] $prerelease = $false,
+  [alias("lo")][switch] $localonly = $false,
   [switch] $debug
-) 
+  ) 
 
 # chocolatey
 # Copyright (c) 2011-Present Rob Reynolds
-# Crediting contributions by Chris Ortman, Nekresh, Staxmanade, Chrissie1, AnthonyMastrean, Rich Siegel
+# Crediting contributions by Chris Ortman, Nekresh, Staxmanade, Chrissie1, AnthonyMastrean, Rich Siegel, and other contributors from the community.
 # Big thanks to Keith Dahlby for all the powershell help! 
 # Apache License, Version 2.0 - http://www.apache.org/licenses/LICENSE-2.0
 
@@ -25,11 +26,12 @@ $currentThread.CurrentCulture = $culture;
 $currentThread.CurrentUICulture = $culture;
 
 #Let's get Chocolatey!
-$chocVer = '0.9.8.17-beta1'
+$chocVer = '0.9.8.19'
 $nugetChocolateyPath = (Split-Path -parent $MyInvocation.MyCommand.Definition)
 $nugetPath = (Split-Path -Parent $nugetChocolateyPath)
 $nugetExePath = Join-Path $nuGetPath 'bin'
 $nugetLibPath = Join-Path $nuGetPath 'lib'
+$extensionsPath = Join-Path $nugetPath 'extensions'
 $chocInstallVariableName = "ChocolateyInstall"
 $nugetExe = Join-Path $nugetChocolateyPath 'nuget.exe'
 $h1 = '====================================================='
@@ -52,6 +54,14 @@ Import-Module $installModule
 Resolve-Path $nugetChocolateyPath\functions\*.ps1 | 
     ? { -not ($_.ProviderPath.Contains(".Tests.")) } |
     % { . $_.ProviderPath }
+
+
+# load extensions if they exist
+if(Test-Path($extensionsPath)) {
+  Write-Debug 'Loading community extensions'
+  #Resolve-Path $extensionsPath\**\*\*.psm1 | % { Write-Debug "Importing `'$_`'"; Import-Module $_.ProviderPath }
+  Get-ChildItem $extensionsPath -recurse -filter "*.psm1" | Select -ExpandProperty FullName | % { Write-Debug "Importing `'$_`'"; Import-Module $_; }
+}
 
 #main entry point
 Remove-LastInstallLog
